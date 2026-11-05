@@ -1,0 +1,51 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="EnterpriseBIM Revit 2025 Importer Setup"
+           Manufacturer="Enterprise AEC Interoperability Division"
+           Version="1.0.0.0"
+           UpgradeCode="8E34D921-1C75-4F32-A841-6D93E25F7B22"
+           Scope="perMachine"
+           InstallerVersion="500"
+           Compressed="yes">
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."
+                  Schedule="afterInstallInitialize" />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <StandardDirectory Id="CommonAppDataFolder">
+      <Directory Id="EnterpriseBimDataDir" Name="EnterpriseBIM">
+        <Directory Id="EnterpriseBimLogsDir" Name="Logs" />
+      </Directory>
+      <Directory Id="AutodeskDir" Name="Autodesk">
+        <Directory Id="RevitDir" Name="Revit">
+          <Directory Id="RevitAddinsRootDir" Name="Addins">
+            <Directory Id="RevitVersionAddinDir" Name="2025">
+              <Directory Id="RevitEnterpriseBimBinDir" Name="EnterpriseBIM" />
+            </Directory>
+          </Directory>
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+
+    <ComponentGroup Id="RevitImporterComponents">
+      <Component Id="Cmp_RevitOnly_StagingDir" Directory="EnterpriseBimDataDir" Guid="5C22D6E3-8F01-4B32-AF25-8C9D23450001">
+        <CreateFolder />
+      </Component>
+      <Component Id="Cmp_RevitOnly_LogsDir" Directory="EnterpriseBimLogsDir" Guid="5C22D6E3-8F01-4B32-AF25-8C9D23450002">
+        <CreateFolder />
+      </Component>
+      <Component Id="Cmp_RevitOnly_AddinManifest" Directory="RevitVersionAddinDir" Guid="5C22D6E3-8F01-4B32-AF25-8C9D23450003">
+        <File Id="File_RevitOnly_Addin" Source="$(var.StagingDir)EnterpriseBIM.addin" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_RevitOnly_CoreDll" Directory="RevitEnterpriseBimBinDir" Guid="5C22D6E3-8F01-4B32-AF25-8C9D23450004">
+        <File Id="File_RevitOnly_CoreDll" Source="$(var.StagingDir)EnterpriseBIM.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_RevitOnly_RevitDll" Directory="RevitEnterpriseBimBinDir" Guid="5C22D6E3-8F01-4B32-AF25-8C9D23450005">
+        <File Id="File_RevitOnly_RevitDll" Source="$(var.StagingDir)EnterpriseBIM.Revit.dll" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <Feature Id="RevitImporterFeature" Title="EnterpriseBIM Revit 2025 Importer" Level="1" AllowAbsent="no">
+      <ComponentGroupRef Id="RevitImporterComponents" />
+    </Feature>
+  </Package>
+</Wix>

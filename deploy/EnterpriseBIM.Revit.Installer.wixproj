@@ -1,0 +1,14 @@
+<Project Sdk="WixToolset.Sdk/4.0.5">
+  <PropertyGroup>
+    <OutputName>EnterpriseBIM.RevitInstaller</OutputName>
+    <OutputType>Package</OutputType>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <StagingDir Condition="'$(StagingDir)' == ''">$(MSBuildThisFileDirectory)..\artifacts\publish\</StagingDir>
+    <DefineConstants>StagingDir=$(StagingDir)</DefineConstants>
+    <SuppressIces>ICE61</SuppressIces>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="RevitInstaller.wxs" />
+  </ItemGroup>
+</Project>

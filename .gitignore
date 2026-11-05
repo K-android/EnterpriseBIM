@@ -1,0 +1,9 @@
+# Build and intermediate outputs
+artifacts/
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.tmp
+*.wixpdb

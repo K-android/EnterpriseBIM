@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>EnterpriseBIM Interoperability Application</Name>
+    <Assembly>EnterpriseBIM\EnterpriseBIM.Revit.dll</Assembly>
+    <AddInId>A18B4E3C-9F02-4C19-B734-6E88D12A9501</AddInId>
+    <FullClassName>EnterpriseBIM.Revit.EnterpriseBimRevitApplication</FullClassName>
+    <VendorId>ENTBIM</VendorId>
+    <VendorDescription>Enterprise AEC Interoperability Division</VendorDescription>
+  </AddIn>
+  <AddIn Type="Command">
+    <Name>EnterpriseBIM Import Exchange</Name>
+    <Assembly>EnterpriseBIM\EnterpriseBIM.Revit.dll</Assembly>
+    <AddInId>F41C92E0-3D8A-47A1-9C25-81B40E63D219</AddInId>
+    <FullClassName>EnterpriseBIM.Revit.Commands.EnterpriseBimImportCommand</FullClassName>
+    <Text>EnterpriseBIM Import Local Exchange</Text>
+    <Description>Imports decoupled local geometry payloads from %programdata%\EnterpriseBIM\exchange.json</Description>
+    <VisibilityMode>AlwaysVisible</VisibilityMode>
+    <VendorId>ENTBIM</VendorId>
+    <VendorDescription>Enterprise AEC Interoperability Division</VendorDescription>
+  </AddIn>
+</RevitAddIns>

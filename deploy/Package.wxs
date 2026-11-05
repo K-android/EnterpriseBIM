@@ -1,0 +1,127 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="EnterpriseBIM Offline Exchange Pipeline (Unified Rhino + Revit)"
+           Manufacturer="Enterprise AEC Interoperability Division"
+           Version="1.0.0.0"
+           UpgradeCode="7D2A9B14-6E8C-43F0-9A15-2C84E510B7E3"
+           Scope="perMachine"
+           InstallerVersion="500"
+           Compressed="yes">
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."
+                  Schedule="afterInstallInitialize" />
+
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Property Id="ARPNOMODIFY" Value="1" />
+    <Property Id="ARPNOREPAIR" Value="1" />
+    <Property Id="REBOOT" Value="ReallySuppress" />
+    <Property Id="REVITVERSION" Value="2025" Secure="yes" />
+    <Property Id="RHINOVERSION" Value="8.0" Secure="yes" />
+
+    <!-- Machine-Wide Directory Structure -->
+    <StandardDirectory Id="CommonAppDataFolder">
+      <!-- %ProgramData%\EnterpriseBIM Staging & Logs -->
+      <Directory Id="EnterpriseBimDataDir" Name="EnterpriseBIM">
+        <Directory Id="EnterpriseBimLogsDir" Name="Logs" />
+      </Directory>
+
+      <!-- %ProgramData%\Autodesk\Revit\Addins\2025 -->
+      <Directory Id="AutodeskDir" Name="Autodesk">
+        <Directory Id="RevitDir" Name="Revit">
+          <Directory Id="RevitAddinsRootDir" Name="Addins">
+            <Directory Id="RevitVersionAddinDir" Name="2025">
+              <Directory Id="RevitEnterpriseBimBinDir" Name="EnterpriseBIM" />
+            </Directory>
+          </Directory>
+        </Directory>
+      </Directory>
+
+      <!-- %ProgramData%\McNeel\Rhinoceros\8.0\Plug-ins\EnterpriseBIM (9C4F8D21-7A1E-4B63-8E51-3D29C84A10F2) -->
+      <Directory Id="McNeelCommonDir" Name="McNeel">
+        <Directory Id="RhinocerosCommonDir" Name="Rhinoceros">
+          <Directory Id="RhinoVersionCommonDir" Name="8.0">
+            <Directory Id="RhinoPluginsCommonDir" Name="Plug-ins">
+              <Directory Id="RhinoEnterpriseBimPluginDir" Name="EnterpriseBIM (9C4F8D21-7A1E-4B63-8E51-3D29C84A10F2)" />
+            </Directory>
+          </Directory>
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+
+    <!-- Component Definitions -->
+    <ComponentGroup Id="EnterpriseBimCoreAndStagingComponents">
+      <Component Id="Cmp_StagingDirectory"
+                 Directory="EnterpriseBimDataDir"
+                 Guid="B40E219A-51C2-4E83-A192-48D3719E02A1">
+        <CreateFolder />
+      </Component>
+
+      <Component Id="Cmp_LogsDirectory"
+                 Directory="EnterpriseBimLogsDir"
+                 Guid="C81F32A0-62D3-4F94-B203-59E4820F13B2">
+        <CreateFolder />
+      </Component>
+    </ComponentGroup>
+
+    <ComponentGroup Id="EnterpriseBimRevitComponents">
+      <Component Id="Cmp_RevitAddinManifest"
+                 Directory="RevitVersionAddinDir"
+                 Guid="D92A43B1-73E4-40A5-C314-60F5931A24C3">
+        <File Id="File_EnterpriseBimAddin"
+              Source="$(var.StagingDir)EnterpriseBIM.addin"
+              KeyPath="yes" />
+      </Component>
+
+      <Component Id="Cmp_RevitCoreDll"
+                 Directory="RevitEnterpriseBimBinDir"
+                 Guid="E03B54C2-84F5-41B6-D425-71A6042B35D4">
+        <File Id="File_Revit_EnterpriseBimCoreDll"
+              Source="$(var.StagingDir)EnterpriseBIM.Core.dll"
+              KeyPath="yes" />
+      </Component>
+
+      <Component Id="Cmp_RevitPluginDll"
+                 Directory="RevitEnterpriseBimBinDir"
+                 Guid="F14C65D3-95A6-42C7-E536-82B7153C46E5">
+        <File Id="File_Revit_EnterpriseBimRevitDll"
+              Source="$(var.StagingDir)EnterpriseBIM.Revit.dll"
+              KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <ComponentGroup Id="EnterpriseBimRhinoComponents">
+      <Component Id="Cmp_RhinoCoreDll"
+                 Directory="RhinoEnterpriseBimPluginDir"
+                 Guid="125D76E4-A6B7-43D8-F647-93C8264D57F6">
+        <File Id="File_Rhino_EnterpriseBimCoreDll"
+              Source="$(var.StagingDir)EnterpriseBIM.Core.dll"
+              KeyPath="yes" />
+      </Component>
+
+      <Component Id="Cmp_RhinoPluginRhp"
+                 Directory="RhinoEnterpriseBimPluginDir"
+                 Guid="236E87F5-B7C8-44E9-A758-04D9375E68A7">
+        <File Id="File_Rhino_EnterpriseBimRhinoRhp"
+              Source="$(var.StagingDir)EnterpriseBIM.Rhino.rhp"
+              KeyPath="yes" />
+
+        <!-- Machine-wide HKLM Rhino 8.0 Plug-in Auto-Registration -->
+        <RegistryKey Root="HKLM"
+                     Key="SOFTWARE\McNeel\Rhinoceros\8.0\Plug-ins\9C4F8D21-7A1E-4B63-8E51-3D29C84A10F2">
+          <RegistryValue Name="Name" Type="string" Value="EnterpriseBIM.Rhino" />
+          <RegistryValue Name="FileName" Type="string" Value="[RhinoEnterpriseBimPluginDir]EnterpriseBIM.Rhino.rhp" />
+          <RegistryValue Name="Organization" Type="string" Value="Enterprise AEC Interoperability Division" />
+        </RegistryKey>
+      </Component>
+    </ComponentGroup>
+
+    <Feature Id="CompleteEnterpriseBimFeature"
+             Title="EnterpriseBIM Full Interoperability Suite"
+             Level="1"
+             AllowAbsent="no">
+      <ComponentGroupRef Id="EnterpriseBimCoreAndStagingComponents" />
+      <ComponentGroupRef Id="EnterpriseBimRevitComponents" />
+      <ComponentGroupRef Id="EnterpriseBimRhinoComponents" />
+    </Feature>
+  </Package>
+</Wix>

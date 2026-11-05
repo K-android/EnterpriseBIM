@@ -1,0 +1,53 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="EnterpriseBIM Rhino 8 Harvester Setup"
+           Manufacturer="Enterprise AEC Interoperability Division"
+           Version="1.0.0.0"
+           UpgradeCode="4B91C632-8A14-48E9-B055-9F20D14E6C11"
+           Scope="perMachine"
+           InstallerVersion="500"
+           Compressed="yes">
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."
+                  Schedule="afterInstallInitialize" />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <StandardDirectory Id="CommonAppDataFolder">
+      <Directory Id="EnterpriseBimDataDir" Name="EnterpriseBIM">
+        <Directory Id="EnterpriseBimLogsDir" Name="Logs" />
+      </Directory>
+      <Directory Id="McNeelCommonDir" Name="McNeel">
+        <Directory Id="RhinocerosCommonDir" Name="Rhinoceros">
+          <Directory Id="RhinoVersionCommonDir" Name="8.0">
+            <Directory Id="RhinoPluginsCommonDir" Name="Plug-ins">
+              <Directory Id="RhinoEnterpriseBimPluginDir" Name="EnterpriseBIM (9C4F8D21-7A1E-4B63-8E51-3D29C84A10F2)" />
+            </Directory>
+          </Directory>
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+
+    <ComponentGroup Id="RhinoHarvesterComponents">
+      <Component Id="Cmp_RhinoOnly_StagingDir" Directory="EnterpriseBimDataDir" Guid="3A11B5C2-4D90-4A21-9E14-7B8C12340001">
+        <CreateFolder />
+      </Component>
+      <Component Id="Cmp_RhinoOnly_LogsDir" Directory="EnterpriseBimLogsDir" Guid="3A11B5C2-4D90-4A21-9E14-7B8C12340002">
+        <CreateFolder />
+      </Component>
+      <Component Id="Cmp_RhinoOnly_CoreDll" Directory="RhinoEnterpriseBimPluginDir" Guid="3A11B5C2-4D90-4A21-9E14-7B8C12340003">
+        <File Id="File_RhinoOnly_CoreDll" Source="$(var.StagingDir)EnterpriseBIM.Core.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="Cmp_RhinoOnly_PluginRhp" Directory="RhinoEnterpriseBimPluginDir" Guid="3A11B5C2-4D90-4A21-9E14-7B8C12340004">
+        <File Id="File_RhinoOnly_Rhp" Source="$(var.StagingDir)EnterpriseBIM.Rhino.rhp" KeyPath="yes" />
+        <RegistryKey Root="HKLM" Key="SOFTWARE\McNeel\Rhinoceros\8.0\Plug-ins\9C4F8D21-7A1E-4B63-8E51-3D29C84A10F2">
+          <RegistryValue Name="Name" Type="string" Value="EnterpriseBIM.Rhino" />
+          <RegistryValue Name="FileName" Type="string" Value="[RhinoEnterpriseBimPluginDir]EnterpriseBIM.Rhino.rhp" />
+          <RegistryValue Name="Organization" Type="string" Value="Enterprise AEC Interoperability Division" />
+        </RegistryKey>
+      </Component>
+    </ComponentGroup>
+
+    <Feature Id="RhinoHarvesterFeature" Title="EnterpriseBIM Rhino 8 Harvester" Level="1" AllowAbsent="no">
+      <ComponentGroupRef Id="RhinoHarvesterComponents" />
+    </Feature>
+  </Package>
+</Wix>

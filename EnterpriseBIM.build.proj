@@ -1,0 +1,75 @@
+<Project DefaultTargets="BuildAndPackage" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+    <Platform Condition="'$(Platform)' == ''">x64</Platform>
+    <StagingOutDir>$(MSBuildThisFileDirectory)artifacts\publish\</StagingOutDir>
+    <SignToolExe Condition="'$(SignToolExe)' == ''">signtool.exe</SignToolExe>
+    <CertificateThumbprint Condition="'$(CertificateThumbprint)' == ''"></CertificateThumbprint>
+    <CertificatePath Condition="'$(CertificatePath)' == ''"></CertificatePath>
+    <CertificatePassword Condition="'$(CertificatePassword)' == ''"></CertificatePassword>
+    <TimestampServerUrl>http://timestamp.digicert.com</TimestampServerUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <OrderedProjects Include="$(MSBuildThisFileDirectory)src\EnterpriseBIM.Core\EnterpriseBIM.Core.csproj" />
+    <OrderedProjects Include="$(MSBuildThisFileDirectory)src\EnterpriseBIM.Rhino\EnterpriseBIM.Rhino.csproj" />
+    <OrderedProjects Include="$(MSBuildThisFileDirectory)src\EnterpriseBIM.Revit\EnterpriseBIM.Revit.csproj" />
+  </ItemGroup>
+
+  <Target Name="CleanStaging">
+    <RemoveDir Directories="$(StagingOutDir)" Condition="Exists('$(StagingOutDir)')" />
+    <MakeDir Directories="$(StagingOutDir)" />
+  </Target>
+
+  <Target Name="RestoreProjects" DependsOnTargets="CleanStaging">
+    <MSBuild Projects="@(OrderedProjects)"
+             Targets="Restore"
+             Properties="Configuration=$(Configuration);Platform=$(Platform)" />
+  </Target>
+
+  <Target Name="CompileProjects" DependsOnTargets="RestoreProjects">
+    <MSBuild Projects="$(MSBuildThisFileDirectory)src\EnterpriseBIM.Core\EnterpriseBIM.Core.csproj"
+             Targets="Build"
+             Properties="Configuration=$(Configuration);OutDir=$(StagingOutDir)" />
+
+    <MSBuild Projects="$(MSBuildThisFileDirectory)src\EnterpriseBIM.Rhino\EnterpriseBIM.Rhino.csproj"
+             Targets="Build"
+             Properties="Configuration=$(Configuration);OutDir=$(StagingOutDir)" />
+
+    <MSBuild Projects="$(MSBuildThisFileDirectory)src\EnterpriseBIM.Revit\EnterpriseBIM.Revit.csproj"
+             Targets="Build"
+             Properties="Configuration=$(Configuration);OutDir=$(StagingOutDir)" />
+
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)deploy\EnterpriseBIM.addin"
+          DestinationFolder="$(StagingOutDir)"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="SignCompiledAssemblies" DependsOnTargets="CompileProjects">
+    <ItemGroup>
+      <BinaryTargetsToSign Include="$(StagingOutDir)EnterpriseBIM.Core.dll" />
+      <BinaryTargetsToSign Include="$(StagingOutDir)EnterpriseBIM.Rhino.rhp" />
+      <BinaryTargetsToSign Include="$(StagingOutDir)EnterpriseBIM.Revit.dll" />
+    </ItemGroup>
+
+    <Error Condition="!Exists('%(BinaryTargetsToSign.Identity)')"
+           Text="Expected build output missing prior to signing: %(BinaryTargetsToSign.Identity)" />
+
+    <Exec Condition="'$(CertificateThumbprint)' != ''"
+          Command="&quot;$(SignToolExe)&quot; sign /sha1 $(CertificateThumbprint) /fd SHA256 /tr $(TimestampServerUrl) /td SHA256 &quot;%(BinaryTargetsToSign.Identity)&quot;" />
+
+    <Exec Condition="'$(CertificateThumbprint)' == '' And '$(CertificatePath)' != ''"
+          Command="&quot;$(SignToolExe)&quot; sign /f &quot;$(CertificatePath)&quot; /p &quot;$(CertificatePassword)&quot; /fd SHA256 /tr $(TimestampServerUrl) /td SHA256 &quot;%(BinaryTargetsToSign.Identity)&quot;" />
+
+    <Exec Condition="'$(CertificateThumbprint)' != '' Or '$(CertificatePath)' != ''"
+          Command="&quot;$(SignToolExe)&quot; verify /pa /v &quot;%(BinaryTargetsToSign.Identity)&quot;" />
+  </Target>
+
+  <Target Name="BuildWixInstaller" DependsOnTargets="SignCompiledAssemblies">
+    <MSBuild Projects="$(MSBuildThisFileDirectory)deploy\EnterpriseBIM.Installer.wixproj"
+             Targets="Restore;Build"
+             Properties="Configuration=$(Configuration);Platform=x64;StagingDir=$(StagingOutDir)" />
+  </Target>
+
+  <Target Name="BuildAndPackage" DependsOnTargets="BuildWixInstaller" />
+</Project>

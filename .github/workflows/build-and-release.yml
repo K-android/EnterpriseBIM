@@ -1,0 +1,37 @@
+name: Build & Package EnterpriseBIM (Rhino + Revit Installers)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-and-package:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Compile EnterpriseBIM (.NET 8) & WiX v4 MSI Packages
+        shell: pwsh
+        run: |
+          dotnet msbuild .\EnterpriseBIM.build.proj /t:BuildAndPackage /p:Configuration=Release
+          dotnet build .\deploy\EnterpriseBIM.Rhino.Installer.wixproj -c Release
+          dotnet build .\deploy\EnterpriseBIM.Revit.Installer.wixproj -c Release
+
+      - name: Upload Installer Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: EnterpriseBIM-Installers
+          path: |
+            artifacts/publish/*
+            artifacts/bin/**/*.msi
+            installers/*.exe
